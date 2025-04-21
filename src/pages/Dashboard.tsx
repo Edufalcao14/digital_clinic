@@ -8,17 +8,22 @@ import {
   Clock,
   CheckCircle,
   FileText,
-  LayoutDashboard
+  LayoutDashboard,
+  Plus,
+  ChevronRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import useAppStore from '@/store/useAppStore';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { AddAppointmentDialog } from '@/components/appointments/AddAppointmentDialog';
-import { DashboardCard } from '@/components/dashboard/DashboardCard';
+import usePatientsStore from '@/store/usePatientStore';
+import useAppointmentsStore from '@/store/useAppointmentsStore';
+import usePaymentsStore from '@/store/usePayments';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { patients, appointments, payments } = useAppStore();
+  const patients = usePatientsStore((state) => state.patients);
+  const appointments = useAppointmentsStore((state) => state.appointments);
+  const payments = usePaymentsStore((state) => state.payments);
   const [showAddAppointment, setShowAddAppointment] = useState(false);
 
   // Calculate metrics
@@ -37,94 +42,164 @@ const Dashboard = () => {
     }
   ).length;
 
-  // Sample data for chart
-  const data = [
-    { name: 'Mon', appointments: 4, revenue: 450 },
-    { name: 'Tue', appointments: 3, revenue: 300 },
-    { name: 'Wed', appointments: 5, revenue: 550 },
-    { name: 'Thu', appointments: 7, revenue: 700 },
-    { name: 'Fri', appointments: 6, revenue: 600 },
-    { name: 'Sat', appointments: 2, revenue: 200 },
-    { name: 'Sun', appointments: 0, revenue: 0 },
+  // Sample data for charts
+  const weeklyData = [
+    { name: 'Seg', appointments: 4, revenue: 450 },
+    { name: 'Ter', appointments: 3, revenue: 300 },
+    { name: 'Qua', appointments: 5, revenue: 550 },
+    { name: 'Qui', appointments: 7, revenue: 700 },
+    { name: 'Sex', appointments: 6, revenue: 600 },
+    { name: 'Sáb', appointments: 2, revenue: 200 },
+    { name: 'Dom', appointments: 0, revenue: 0 },
+  ];
+
+  const treatmentData = [
+    { name: 'Limpeza', value: 35 },
+    { name: 'Restauração', value: 25 },
+    { name: 'Canal', value: 15 },
+    { name: 'Ortodontia', value: 20 },
+    { name: 'Outros', value: 5 },
+  ];
+
+  const COLORS = ['#e879f9', '#f472b6', '#fb7185', '#c084fc', '#a78bfa'];
+
+  // Quick action cards
+  const quickActions = [
+    {
+      title: "Novo Paciente",
+      icon: Users,
+      color: "violet",
+      description: "Registrar um novo paciente",
+      action: () => navigate('/patients/new')
+    },
+    {
+      title: "Agendar Consulta",
+      icon: Calendar,
+      color: "pink",
+      description: "Agendar uma nova consulta",
+      action: () => setShowAddAppointment(true)
+    },
+    {
+      title: "Criar Prescrição",
+      icon: FileText,
+      color: "teal",
+      description: "Escrever uma nova prescrição",
+      action: () => navigate('/prescriptions/new')
+    }
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-6">
-        <div className='flex flex-row items-center gap-2'>
-          <LayoutDashboard size={32} className='text-dental-600' />
-          <h1 className="text-3xl font-bold">Painel de Controle</h1>
+    <div className="min-h-screen bg-gradient-to-br from-white to-rose-50/50 overflow-x-hidden">
+      {/* Top Navigation Bar */}
+      <header className="bg-white shadow-sm border-b border-gray-100 px-4 sm:px-6 py-4 flex justify-between items-center sticky top-0 z-10 overflow-x-hidden">
+        <div className="flex items-center gap-3">
+          <div className="bg-pink-100 p-2 rounded-lg">
+            <LayoutDashboard size={22} className="text-pink-500" />
+          </div>
+          <div>
+            <h1 className="text-xl font-medium text-gray-800">Painel de Controle</h1>
+            <p className="text-sm text-gray-500">Bem-vinda, Dra. Jéssica de Carvalho</p>
+          </div>
         </div>
-
-        <div className="flex justify-end m-5">
+        <div className="flex items-center gap-4">
           <AddAppointmentDialog />
+          {/* Profile dropdown would go here */}
         </div>
-        {/* Stats cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
-          <DashboardCard
+      </header>
+
+      <main className="container mx-auto px-4 sm:px-6 py-8 max-w-full overflow-x-hidden">
+        {/* Stats row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+          <StatsCard
             title="Total de Pacientes"
             value={totalPatients}
             icon={Users}
-            trend={{ value: "+5%", label: "em relação ao mês anterior", isPositive: true }}
+            iconBg="bg-violet-100"
+            iconColor="text-violet-500"
+            trend="+5%"
+            trendUp={true}
+            subtext=""
           />
-
-          <DashboardCard
-            title="Próximas Consultas"
-            value={upcomingAppointments}
+          <StatsCard
+            title="Consultas Hoje"
+            value={todayAppointments}
             icon={Calendar}
-            additionalInfo={`${todayAppointments} hoje`}
+            iconBg="bg-pink-100"
+            iconColor="text-pink-500"
+            subtext={`${upcomingAppointments} agendadas`}
+            trend=""
+            trendUp={false}
           />
-
-          <DashboardCard
+          <StatsCard
             title="Receita Total"
             value={`R$${totalRevenue}`}
             icon={DollarSign}
-            trend={{ value: "+12%", label: "em relação ao mês anterior", isPositive: true }}
+            iconBg="bg-teal-100"
+            iconColor="text-teal-500"
+            trend="+12%"
+            trendUp={true}
+            subtext=""
           />
-
-          <DashboardCard
-            title="Taxa de Sucesso do Tratamento"
+          <StatsCard
+            title="Taxa de Sucesso"
             value="95%"
             icon={TrendingUp}
-            trend={{ value: "+2%", label: "em relação ao trimestre anterior", isPositive: true }}
+            iconBg="bg-rose-100"
+            iconColor="text-rose-500"
+            trend="+2%"
+            trendUp={true}
+            subtext=""
           />
         </div>
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Visão Geral Semanal</CardTitle>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 overflow-x-hidden">
+          {/* Weekly Overview */}
+          <Card className="border-0 shadow-sm rounded-xl col-span-2 overflow-x-hidden">
+            <CardHeader className="pb-2 flex flex-row items-center justify-between">
+              <CardTitle className="text-lg font-medium text-gray-800">Visão Semanal</CardTitle>
+              <select className="text-sm border border-gray-200 rounded-md px-2 py-1 bg-white">
+                <option>Esta Semana</option>
+                <option>Semana Passada</option>
+                <option>Mês Passado</option>
+              </select>
             </CardHeader>
-            <CardContent>
-              <div className="h-80">
+            <CardContent className="pt-2">
+              <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis yAxisId="left" orientation="left" />
+                  <BarChart data={weeklyData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="name" stroke="#888" fontSize={12} />
+                    <YAxis yAxisId="left" orientation="left" stroke="#888" fontSize={12} />
                     <YAxis
                       yAxisId="right"
                       orientation="right"
                       tickFormatter={(value) => `R$${value}`}
+                      stroke="#888"
+                      fontSize={12}
                     />
                     <Tooltip
                       formatter={(value, name) => [
                         name === 'revenue' ? `R$${value}` : value,
                         name === 'revenue' ? 'Receita' : 'Consultas'
                       ]}
+                      contentStyle={{ 
+                        borderRadius: '8px', 
+                        border: 'none', 
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                        fontSize: '12px'
+                      }}
                     />
                     <Bar
                       yAxisId="left"
                       dataKey="appointments"
-                      fill="#38BDF8"
+                      fill="#d946ef"
                       name="Consultas"
                       radius={[4, 4, 0, 0]}
                     />
                     <Bar
                       yAxisId="right"
                       dataKey="revenue"
-                      fill="#0EA5E9"
+                      fill="#ec4899"
                       name="Receita"
                       radius={[4, 4, 0, 0]}
                     />
@@ -134,91 +209,171 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Atividade Recente</CardTitle>
+          {/* Treatment Distribution */}
+          <Card className="border-0 shadow-sm rounded-xl overflow-x-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-medium text-gray-800">Distribuição de Tratamentos</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="pt-0 flex justify-center items-center">
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={treatmentData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {treatmentData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value) => [`${value}%`, 'Porcentagem']}
+                      contentStyle={{ 
+                        borderRadius: '8px', 
+                        border: 'none', 
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                        fontSize: '12px'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+            <div className="px-6 pb-4">
+              <div className="flex flex-wrap gap-3 justify-center">
+                {treatmentData.map((entry, index) => (
+                  <div key={index} className="flex items-center gap-2 text-xs">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                    <span>{entry.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-x-hidden">
+          {/* Recent Activity */}
+          <Card className="border-0 shadow-sm rounded-xl lg:col-span-2 overflow-x-hidden">
+            <CardHeader className="pb-2 flex flex-row items-center justify-between">
+              <CardTitle className="text-lg font-medium text-gray-800">Próximas Consultas</CardTitle>
+              <button 
+                className="text-sm text-pink-600 hover:text-pink-700 font-medium flex items-center"
+                onClick={() => navigate('/appointments')}
+              >
+                Ver Todos <ChevronRight size={16} />
+              </button>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-3 mt-2">
                 {appointments.slice(0, 5).map((appointment) => {
                   const patient = patients.find(p => p.id === appointment.patientId);
+                  const statusStyles = {
+                    scheduled: 'bg-pink-50 text-pink-500',
+                    completed: 'bg-teal-50 text-teal-500',
+                    cancelled: 'bg-gray-50 text-gray-500'
+                  };
 
                   return (
-                    <div key={appointment.id} className="flex items-start space-x-4 p-3 rounded-md hover:bg-gray-50">
-                      <div className={`p-2 rounded-full ${appointment.status === 'scheduled' ? 'bg-blue-100 text-blue-600' : appointment.status === 'completed' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                    <div key={appointment.id} className="flex items-start space-x-4 p-3 rounded-lg hover:bg-rose-50/50 transition-colors">
+                      <div className={`p-2 rounded-full ${statusStyles[appointment.status] || 'bg-pink-50 text-pink-500'}`}>
                         {appointment.status === 'scheduled' ? (
-                          <Clock size={18} />
+                          <Clock size={16} />
                         ) : appointment.status === 'completed' ? (
-                          <CheckCircle size={18} />
+                          <CheckCircle size={16} />
                         ) : (
-                          <Calendar size={18} />
+                          <Calendar size={16} />
                         )}
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium">{patient?.name}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm font-medium text-gray-800">{patient?.name}</p>
+                        <p className="text-xs text-gray-500">
                           {new Date(appointment.date).toLocaleDateString()} - {appointment.time}
                         </p>
-                        <p className="text-xs font-medium text-dental-600 mt-1">
+                        <p className="text-xs font-medium text-pink-600 mt-1">
                           {appointment.type}
                         </p>
                       </div>
-                      <div className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100">
-                        {appointment.status}
+                      <div className="text-xs font-medium px-2 py-1 rounded-full bg-white border border-gray-100 shadow-sm text-gray-600">
+                        {appointment.status === 'scheduled' ? 'Agendado' : 
+                         appointment.status === 'completed' ? 'Concluído' : 'Cancelado'}
                       </div>
                     </div>
                   );
                 })}
+              </div>
+            </CardContent>
+          </Card>
 
-                <button
-                  className="w-full text-sm text-dental-600 hover:text-dental-700 font-medium mt-2 py-2"
-                  onClick={() => navigate('/appointments')}
-                >
-                  Ver Todos os Agendamentos
-                </button>
+          {/* Quick Actions */}
+          <Card className="border-0 shadow-sm rounded-xl overflow-x-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-medium text-gray-800">Ações Rápidas</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-3 mt-2">
+                {quickActions.map((action, index) => (
+                  <button
+                    key={index}
+                    className="w-full flex items-center p-3 rounded-lg hover:bg-rose-50/50 transition-colors text-left"
+                    onClick={action.action}
+                  >
+                    <div className={`p-2 rounded-full mr-4 bg-${action.color}-100 text-${action.color}-500`}>
+                      <action.icon size={16} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{action.title}</p>
+                      <p className="text-xs text-gray-500">{action.description}</p>
+                    </div>
+                  </button>
+                ))}
               </div>
             </CardContent>
           </Card>
         </div>
-
-        {/* Quick actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
-          <Card className="card-hover cursor-pointer" onClick={() => navigate('/patients/new')}>
-            <CardContent className="p-6 flex flex-col items-center justify-center">
-              <Users className="h-10 w-10 text-dental-500 mb-4" />
-              <h3 className="font-medium text-lg">Novo Paciente</h3>
-              <p className="text-sm text-muted-foreground mt-1 text-center">
-                Registrar um novo paciente
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card
-            className="card-hover cursor-pointer"
-            onClick={() => setShowAddAppointment(true)}
-          >
-            <CardContent className="p-6 flex flex-col items-center justify-center">
-              <Calendar className="h-10 w-10 text-dental-500 mb-4" />
-              <h3 className="font-medium text-lg">Agendar Consulta</h3>
-              <p className="text-sm text-muted-foreground mt-1 text-center">
-                Agendar uma nova consulta
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="card-hover cursor-pointer" onClick={() => navigate('/prescriptions/new')}>
-            <CardContent className="p-6 flex flex-col items-center justify-center">
-              <FileText className="h-10 w-10 text-dental-500 mb-4" />
-              <h3 className="font-medium text-lg">Criar Prescrição</h3>
-              <p className="text-sm text-muted-foreground mt-1 text-center">
-                Escrever uma nova prescrição
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
+      </main>
     </div>
+  );
+};
+
+// Stats Card Component
+interface StatsCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ElementType;
+  iconBg: string;
+  iconColor: string;
+  trend?: string;
+  trendUp?: boolean;
+  subtext?: string;
+}
+
+const StatsCard = ({ title, value, icon: Icon, iconBg, iconColor, trend, trendUp, subtext }: StatsCardProps) => {
+  return (
+    <Card className="border-0 shadow-sm rounded-xl overflow-hidden">
+      <CardContent className="p-5">
+        <div className="flex justify-between items-start">
+          <div>
+            <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
+            <h3 className="text-2xl font-semibold text-gray-800">{value}</h3>
+            {subtext && <p className="text-xs text-gray-500 mt-1">{subtext}</p>}
+            {trend && (
+              <div className={`flex items-center mt-2 text-xs font-medium ${trendUp ? 'text-emerald-500' : 'text-rose-500'}`}>
+                {trendUp ? '↑' : '↓'} {trend}
+              </div>
+            )}
+          </div>
+          <div className={`${iconBg} p-3 rounded-xl ${iconColor}`}>
+            <Icon size={20} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

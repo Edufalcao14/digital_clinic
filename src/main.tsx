@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter, Outlet } from "react-router-dom";
 import App from './App.tsx'
 import './index.css'
-import Appointments from './pages/Appointments.tsx'
+import Appointments from './pages/appointments/Appointments.tsx'
 import Dashboard from './pages/Dashboard.tsx'
 import Patients from './pages/Patients.tsx'
 import { Toaster } from 'sonner';

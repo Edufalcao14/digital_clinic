@@ -2,8 +2,8 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import useAppStore from '@/store/useAppStore'; // Adjust the path to your store
 import { Patient } from '@/types/types';
+import { Plus } from 'lucide-react';
 
 // Shadcn/UI components
 import {
@@ -19,14 +19,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Plus } from 'lucide-react';
+import usePatientsStore from '@/store/usePatientStore';
 
 // Define the validation schema using Zod
 const patientSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().min(10, 'Phone number must be at least 10 digits').max(15, 'Phone number must be less than 15 digits'),
-  dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  name: z.string().min(1, 'Nome é obrigatório').max(100, 'Nome deve ter menos de 100 caracteres'),
+  email: z.string().email('Email inválido'),
+  phone: z.string().min(10, 'Telefone deve ter pelo menos 10 dígitos').max(15, 'Telefone deve ter menos de 15 dígitos'),
+  dateOfBirth: z.string().min(1, 'Data de nascimento é obrigatória'),
   address: z.string().optional(),
   emergencyContact: z.string().optional(),
   medicalHistory: z.object({
@@ -45,7 +45,7 @@ const patientSchema = z.object({
 type PatientFormData = Omit<Patient, 'id' | 'createdAt'>;
 
 const AddPatientForm = () => {
-  const addPatient = useAppStore((state) => state.addPatient);
+  const addPatient = usePatientsStore((state) => state.addPatient);
 
   const {
     register,
@@ -58,7 +58,7 @@ const AddPatientForm = () => {
       name: '',
       email: '',
       phone: '',
-      dateOfBirth: new Date(),
+      dateOfBirth: null,
       address: '',
       emergencyContact: '',
       medicalHistory: {
@@ -83,149 +83,171 @@ const AddPatientForm = () => {
 
     addPatient(formattedData);
     reset(); // Reset form after submission
-    alert('Patient added successfully!');
   };
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white">
-          <Plus className="w-4 h-4 mr-2" />
-          Add New Patient
+        <Button 
+          variant="outline" 
+          size="sm"
+          className="text-pink-500 bg-transparent hover:bg-pink-50 hover:text-rose-600 text-xs border border-pink-200"
+        >
+          <Plus className="w-3 h-3 mr-1" />
+          <span>Novo Paciente</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-[600px] p-4 sm:p-6 rounded-lg bg-background">
-        <DialogHeader className="mb-6">
-          <DialogTitle className="text-2xl font-semibold text-center sm:text-left">
-            Add New Patient
+      <DialogContent className="w-[90vw] max-w-md p-3 rounded-lg bg-white shadow-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader className="mb-2">
+          <DialogTitle className="text-lg font-light text-rose-700">
+            Novo Paciente
           </DialogTitle>
-          <DialogDescription className="text-muted-foreground text-center sm:text-left">
-            Fill in the details below to add a new patient to the system.
+          <DialogDescription className="text-slate-500 text-xs">
+            Preencha os dados básicos abaixo
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Name */}
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-medium">
-                Name
-              </Label>
-              <Input 
-                id="name" 
-                type="text" 
-                {...register('name')} 
-                className="w-full rounded-md border-input"
-                placeholder="Enter patient name"
-              />
-              {errors.name && (
-                <p className="text-xs text-destructive">{errors.name.message}</p>
-              )}
-            </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
+          {/* Name */}
+          <div>
+            <Label htmlFor="name" className="text-xs font-medium text-pink-500">
+              Nome Completo
+            </Label>
+            <Input
+              id="name"
+              type="text"
+              {...register('name')}
+              className="w-full rounded-md h-8 text-sm mt-1"
+              placeholder="Nome do paciente"
+            />
+            {errors.name && (
+              <p className="text-xs text-pink-500">{errors.name.message}</p>
+            )}
+          </div>
 
+          {/* Email and Phone in a grid */}
+          <div className="grid grid-cols-2 gap-2">
             {/* Email */}
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">
+            <div>
+              <Label htmlFor="email" className="text-xs font-medium text-pink-500">
                 Email
               </Label>
-              <Input 
-                id="email" 
-                type="email" 
-                {...register('email')} 
-                className="w-full rounded-md border-input"
-                placeholder="patient@example.com"
+              <Input
+                id="email"
+                type="email"
+                {...register('email')}
+                className="w-full rounded-md h-8 text-sm mt-1"
+                placeholder="email@exemplo.com"
               />
               {errors.email && (
-                <p className="text-xs text-destructive">{errors.email.message}</p>
+                <p className="text-xs text-pink-500">{errors.email.message}</p>
               )}
             </div>
 
             {/* Phone */}
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-sm font-medium">
-                Phone
+            <div>
+              <Label htmlFor="phone" className="text-xs font-medium text-pink-500">
+                Telefone
               </Label>
-              <Input 
-                id="phone" 
-                type="tel" 
-                {...register('phone')} 
-                className="w-full rounded-md border-input"
-                placeholder="(123) 456-7890"
+              <Input
+                id="phone"
+                type="tel"
+                {...register('phone')}
+                className="w-full rounded-md h-8 text-sm mt-1"
+                placeholder="(00) 00000-0000"
               />
               {errors.phone && (
-                <p className="text-xs text-destructive">{errors.phone.message}</p>
-              )}
-            </div>
-
-            {/* Date of Birth */}
-            <div className="space-y-2">
-              <Label htmlFor="dateOfBirth" className="text-sm font-medium">
-                Date of Birth
-              </Label>
-              <Input 
-                id="dateOfBirth" 
-                type="date" 
-                {...register('dateOfBirth')} 
-                className="w-full rounded-md border-input"
-              />
-              {errors.dateOfBirth && (
-                <p className="text-xs text-destructive">{errors.dateOfBirth.message}</p>
+                <p className="text-xs text-pink-500">{errors.phone.message}</p>
               )}
             </div>
           </div>
 
-          {/* Address */}
-          <div className="space-y-2">
-            <Label htmlFor="address" className="text-sm font-medium">
-              Address
+          {/* Date of Birth */}
+          <div>
+            <Label htmlFor="dateOfBirth" className="text-xs font-medium text-pink-500">
+              Data de Nascimento
             </Label>
-            <Textarea 
-              id="address" 
-              {...register('address')} 
-              className="w-full rounded-md border-input min-h-[80px]"
-              placeholder="Enter patient address"
+            <Input
+              id="dateOfBirth"
+              type="date"
+              {...register('dateOfBirth')}
+              className="w-full rounded-md h-8 text-sm mt-1"
+            />
+            {errors.dateOfBirth && (
+              <p className="text-xs text-pink-500">{errors.dateOfBirth.message}</p>
+            )}
+          </div>
+
+          {/* Address - reduced height */}
+          <div>
+            <Label htmlFor="address" className="text-xs font-medium text-pink-500">
+              Endereço
+            </Label>
+            <Textarea
+              id="address"
+              {...register('address')}
+              className="w-full rounded-md min-h-[40px] text-sm mt-1"
+              placeholder="Endereço completo"
             />
           </div>
 
-          {/* Emergency Contact */}
-          <div className="space-y-2">
-            <Label htmlFor="emergencyContact" className="text-sm font-medium">
-              Emergency Contact
+          {/* Emergency Contact - reduced height */}
+          <div>
+            <Label htmlFor="emergencyContact" className="text-xs font-medium text-pink-500">
+              Contato de Emergência
             </Label>
-            <Input 
-              id="emergencyContact" 
-              type="text" 
-              {...register('emergencyContact')} 
-              className="w-full rounded-md border-input"
-              placeholder="Contact name and phone number"
+            <Input
+              id="emergencyContact"
+              {...register('emergencyContact')}
+              className="w-full rounded-md h-8 text-sm mt-1"
+              placeholder="Nome e telefone do contato"
             />
           </div>
 
-          {/* Medical History - Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="medicalHistory.notes" className="text-sm font-medium">
-              Medical History Notes
+          {/* Medical Notes - simplified */}
+          <div>
+            <Label htmlFor="medicalHistory.notes" className="text-xs font-medium text-pink-500">
+              Histórico Médico
             </Label>
-            <Textarea 
-              id="medicalHistory.notes" 
-              {...register('medicalHistory.notes')} 
-              className="w-full rounded-md border-input min-h-[100px]"
-              placeholder="Enter any relevant medical history notes"
+            <Textarea
+              id="medicalHistory.notes"
+              {...register('medicalHistory.notes')}
+              className="w-full rounded-md min-h-[40px] text-sm mt-1"
+              placeholder="Alergias, medicações, condições médicas..."
+            />
+          </div>
+
+          {/* Dental Notes - simplified */}
+          <div>
+            <Label htmlFor="dentalHistory.notes" className="text-xs font-medium text-pink-500">
+              Histórico Odontológico
+            </Label>
+            <Textarea
+              id="dentalHistory.notes"
+              {...register('dentalHistory.complaints')}
+              className="w-full rounded-md min-h-[40px] text-sm mt-1"
+              placeholder="Queixas, tratamentos anteriores..."
             />
           </div>
 
           {/* Submit Button */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-end pt-4">
+          <div className="flex gap-2 justify-end pt-2">
             <DialogClose asChild>
-              <Button type="button" variant="outline" className="w-full sm:w-auto">
-                Cancel
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                className="border-rose-200 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+              >
+                Cancelar
               </Button>
             </DialogClose>
-            <Button 
-              type="submit" 
-              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white"
+            <Button
+              type="submit"
+              size="sm"
+              className="bg-gradient-to-r from-rose-400 to-pink-400 hover:from-rose-500 hover:to-pink-500 text-white"
             >
-              Add Patient
+              Cadastrar
             </Button>
           </div>
         </form>

@@ -2,10 +2,8 @@ import React from 'react';
 import { User, Phone, Mail } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Patient } from '@/store/useAppStore';
-import { Clipboard, Pill } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import MedicalHistoryCard from '@/components/patients/MedicalHistoryCard';
+import { Patient } from '@/types/types';
 
 interface ProfileTabProps {
   patient: Patient;
@@ -13,6 +11,7 @@ interface ProfileTabProps {
 }
 
 const ProfileTab: React.FC<ProfileTabProps> = ({ patient, patientAge }) => {
+
   return (
     <div className="space-y-4">
       <Card>

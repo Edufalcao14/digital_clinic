@@ -7,9 +7,7 @@ import {
     Calendar as CalendarIcon,
     StickyNote,
 } from 'lucide-react';
-
 import { FaTooth } from "react-icons/fa";
-
 import { Button } from '@/components/ui/button';
 import {
     Dialog,

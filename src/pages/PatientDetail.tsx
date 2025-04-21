@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { PrinterCheck  } from 'lucide-react';
-import useAppStore from '@/store/useAppStore';
+import { FileText, FileSpreadsheet, ChevronLeft } from 'lucide-react';
 import { calculateAge } from '@/utils/ageCalculator';
 
 // Import components
@@ -13,10 +12,15 @@ import OdontogramTab from '@/components/patients/OdontogramTab';
 import TreatmentTab from '@/components/patients/TreatmentTab';
 import BillingTab from '@/components/patients/BillingTab';
 import PrintableView from '@/components/patients/PrintableView';
+import usePatientsStore from '@/store/usePatientStore';
+import useAppointmentsStore from '@/store/useAppointmentsStore';
+import usePaymentsStore from '@/store/usePayments';
 
 const PatientDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { patients, appointments, payments } = useAppStore();
+  const patients = usePatientsStore((state) => state.patients);
+  const appointments = useAppointmentsStore((state) => state.appointments);
+  const payments = usePaymentsStore((state) => state.payments);
   const [showPrintView, setShowPrintView] = useState(false);
   const [reportType, setReportType] = useState<'medical' | 'billing'>('medical');
   
@@ -24,7 +28,15 @@ const PatientDetail = () => {
   const patient = patients.find(p => p.id === id);
   
   if (!patient) {
-    return <div>Paciente não encontrado</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-rose-400">
+        <div className="text-lg font-light mb-2">Paciente não encontrado</div>
+        <Button variant="ghost" className="text-rose-400 flex items-center">
+          <ChevronLeft className="mr-1 h-4 w-4" />
+          Voltar
+        </Button>
+      </div>
+    );
   }
   
   // Filter appointments and payments for this patient
@@ -48,7 +60,7 @@ const PatientDetail = () => {
   
   // Get patient age if date of birth exists
   const patientAge = patient.dateOfBirth 
-    ? calculateAge(patient.dateOfBirth.toISOString().split('T')[0]) 
+    ? calculateAge(patient.dateOfBirth) 
     : 'N/A';
   
   const handlePrintMedical = () => {
@@ -62,45 +74,93 @@ const PatientDetail = () => {
   };
   
   return (
-    <div className="dental-container">
-      <div className="flex justify-between items-center mb-4">
-        <PatientHeader patient={patient} />
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handlePrintMedical}>
-            <PrinterCheck className="mr-2 h-4 w-4" />
-            Relatório Médico
-          </Button>
-          <Button variant="outline" onClick={handlePrintBilling}>
-            <PrinterCheck className="mr-2 h-4 w-4" />
-            Relatório Financeiro
-          </Button>
+    <div className="p-6 bg-gradient-to-br from-white to-rose-50 min-h-screen">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <PatientHeader patient={patient} />
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              onClick={handlePrintMedical} 
+              className="bg-white text-rose-600 border-rose-200 hover:bg-rose-50 transition-colors"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Relatório Médico
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handlePrintBilling}
+              className="bg-white text-violet-600 border-violet-200 hover:bg-violet-50 transition-colors"
+            >
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              Relatório Financeiro
+            </Button>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <Tabs defaultValue="profile" className="space-y-6">
+            <TabsList className="bg-gray-50 p-1 rounded-lg">
+              <TabsTrigger 
+                value="profile" 
+                className="data-[state=active]:bg-white data-[state=active]:text-rose-600 rounded-md px-6"
+              >
+                Perfil
+              </TabsTrigger>
+              <TabsTrigger 
+                value="odontogram" 
+                className="data-[state=active]:bg-white data-[state=active]:text-rose-600 rounded-md px-6"
+              >
+                Odontograma
+              </TabsTrigger>
+              <TabsTrigger 
+                value="treatment" 
+                className="data-[state=active]:bg-white data-[state=active]:text-rose-600 rounded-md px-6"
+              >
+                Tratamento
+              </TabsTrigger>
+              <TabsTrigger 
+                value="billing" 
+                className="data-[state=active]:bg-white data-[state=active]:text-rose-600 rounded-md px-6"
+              >
+                Financeiro
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent 
+              value="profile" 
+              className="bg-white rounded-lg p-1 animate-in fade-in-50 duration-300"
+            >
+              <ProfileTab patient={patient} patientAge={patientAge} />
+            </TabsContent>
+            
+            <TabsContent 
+              value="odontogram" 
+              className="bg-white rounded-lg p-1 animate-in fade-in-50 duration-300"
+            >
+              <OdontogramTab />
+            </TabsContent>
+            
+            <TabsContent 
+              value="treatment" 
+              className="bg-white rounded-lg p-1 animate-in fade-in-50 duration-300"
+            >
+              <TreatmentTab treatmentHistory={treatmentHistory} />
+            </TabsContent>
+            
+            <TabsContent 
+              value="billing"
+              className="bg-white rounded-lg p-1 animate-in fade-in-50 duration-300"
+            >
+              <BillingTab totalBalanceDue={totalBalanceDue} patientPayments={patientPayments} />
+            </TabsContent>
+          </Tabs>
+        </div>
+        
+        <div className="mt-6 text-center text-xs text-gray-400">
+          Sistema Odontológico • {new Date().toLocaleDateString()}
         </div>
       </div>
-      
-      <Tabs defaultValue="profile" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="profile">Perfil</TabsTrigger>
-          <TabsTrigger value="odontogram">Odontograma</TabsTrigger>
-          <TabsTrigger value="treatment">Tratamento</TabsTrigger>
-          <TabsTrigger value="billing">Financeiro</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="profile">
-          <ProfileTab patient={patient} patientAge={patientAge} />
-        </TabsContent>
-        
-        <TabsContent value="odontogram">
-          <OdontogramTab />
-        </TabsContent>
-        
-        <TabsContent value="treatment" className="space-y-4">
-          <TreatmentTab treatmentHistory={treatmentHistory} />
-        </TabsContent>
-        
-        <TabsContent value="billing" className="space-y-4">
-          <BillingTab totalBalanceDue={totalBalanceDue} patientPayments={patientPayments} />
-        </TabsContent>
-      </Tabs>
       
       {showPrintView && (
         <PrintableView

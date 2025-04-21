@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, hover, motion } from 'framer-motion';
 import { 
   List,
 
@@ -12,14 +12,16 @@ import { ListView } from '@/components/appointments/ListView';
 import { CalendarView } from '@/components/appointments/CalendarView';
 import { AppointmentWithPatient } from '@/types/appointment.types';
 import { AddAppointmentDialog } from '@/components/appointments/AddAppointmentDialog';
-import useAppStore from '@/store/useAppStore';
 import { TodaysAppointmentsView } from '@/components/appointments/TodaysAppointmentsView';
 import { useNavigate } from 'react-router-dom';
+import useAppointmentsStore from '@/store/useAppointmentsStore';
+import usePatientsStore from '@/store/usePatientStore';
 
 const Appointments = () => {
   const [date, setDate] = useState(new Date());
   const [view, setView] = useState<'list' | 'calendar' | 'today'>('calendar');
-  const { appointments, patients } = useAppStore();
+  const appointments = useAppointmentsStore((appointments) => appointments.appointments);
+  const patients = usePatientsStore((patients)=> patients.patients);
   const navigate = useNavigate();
   const [showTodaysAppointments, setShowTodaysAppointments] = useState(false);
 
@@ -62,7 +64,7 @@ const Appointments = () => {
         <header className="mb-8">
           <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
             <div className="flex items-center gap-3">
-              <FaTooth className="w-8 h-8 text-teal-600" />
+              <FaTooth className="w-8 h-8 text-pink-600" />
               <h1 className="text-2xl font-semibold text-gray-800">
                 Agendamentos Odontológicos
               </h1>
@@ -74,7 +76,7 @@ const Appointments = () => {
                   variant={view === 'list' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setView('list')}
-                  className={view === 'list' ? 'bg-teal-50 text-teal-700' : 'text-gray-600'}
+                  className={view === 'list' ? 'bg-pink-50 text-pink-700 hover:bg-pink-100'  : 'text-gray-600' }
                 >
                   <List className="w-4 h-4 mr-2" />
                   Lista
@@ -83,7 +85,7 @@ const Appointments = () => {
                   variant={view === 'calendar' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setView('calendar')}
-                  className={view === 'calendar' ? 'bg-teal-50 text-teal-700' : 'text-gray-600'}
+                  className={view === 'calendar' ? 'bg-pink-50 text-pink-700 hover:bg-pink-100' : 'text-gray-600'}
                 >
                   <CalendarIcon className="w-4 h-4 mr-2" />
                   Calendário
@@ -92,7 +94,7 @@ const Appointments = () => {
                   variant={view === 'today' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setView('today')}
-                  className={view === 'today' ? 'bg-teal-50 text-teal-700' : 'text-gray-600'}
+                  className={view === 'today' ? 'bg-pink-50 text-pink-700 hover:bg-pink-100' : 'text-gray-600'}
                 >
                   Hoje ({todaysAppointments.length})
                 </Button>

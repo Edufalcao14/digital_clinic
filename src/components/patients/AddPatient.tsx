@@ -42,7 +42,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import useAppStore from "@/store/useAppStore";
+import usePatientsStore from "@/store/usePatientStore";
 
 // Define validation schema for the form
 const patientSchema = z.object({
@@ -71,7 +71,7 @@ type PatientFormValues = z.infer<typeof patientSchema>;
 
 const AddPatient = () => {
   const navigate = useNavigate();
-  const { addPatient } = useAppStore();
+  const { addPatient } = usePatientsStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Default values for the form

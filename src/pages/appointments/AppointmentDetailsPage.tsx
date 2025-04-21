@@ -11,7 +11,6 @@ import {
 import { FaTooth } from "react-icons/fa";
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import useAppStore from '@/store/useAppStore';
 import { Badge } from '@/components/ui/badge';
 import {
     Card,
@@ -40,6 +39,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Payment } from '@/types/types';
+import usePatientsStore from '@/store/usePatientStore';
+import useAppointmentsStore from '@/store/useAppointmentsStore';
 
 type AppointmentStatus = 'scheduled' | 'completed' | 'cancelled' | 'no-show';
 type PaymentMethod = 'cash' | 'card' | 'insurance' | 'other';
@@ -49,9 +50,9 @@ export const AppointmentDetailsPage = () => {
     const { id } = useParams();
     const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
-    const appointments = useAppStore((state) => state.appointments);
-    const patients = useAppStore((state) => state.patients);
-    const updateAppointment = useAppStore((state) => state.updateAppointment);
+    const appointments = useAppointmentsStore((state) => state.appointments);
+    const patients = usePatientsStore((state) => state.patients);
+    const updateAppointment = useAppointmentsStore((state) => state.updateAppointment);
 
     const appointment = useMemo(
         () => appointments.find(apt => apt.id === id),

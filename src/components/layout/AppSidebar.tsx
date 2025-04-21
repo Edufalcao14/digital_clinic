@@ -1,10 +1,8 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-  Sidebar, 
-  SidebarContent, 
-  SidebarTrigger, 
+import {
+  Sidebar,
+  SidebarContent,
   SidebarHeader,
   SidebarGroup,
   SidebarGroupContent,
@@ -13,119 +11,144 @@ import {
   SidebarMenuItem,
   SidebarMenuButton
 } from '@/components/ui/sidebar';
-import { 
-  Home, 
-  Users, 
-  Calendar, 
-  FileText, 
-  DollarSign, 
-  PieChart, 
-  Settings,
-  Activity
+import {
+  Home,
+  Users,
+  Calendar,
+  FileText,
+  DollarSign,
+  PieChart,
 } from 'lucide-react';
 
 const AppSidebar = () => {
   return (
-    <Sidebar className="border-r border-border">
-      <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2">
-          <Activity className="h-6 w-6 text-dental-600" />
-          <h1 className="font-bold text-lg">ToothTrack Pro</h1>
+    <Sidebar className="border-r border-slate-200 bg-gradient-to-b from-rose-50 to-white">
+      <SidebarHeader className="flex flex-col items-center justify-center py-6 space-y-2">
+        <div className="rounded-full">
+          <img src="/images/logo-light.png" alt="logo" className="w-20 h-20" />
         </div>
-        <SidebarTrigger />
+        <h1 className="text-lg font-medium tracking-wide text-slate-800">
+          Dra. Jéssica De Carvalho
+        </h1>
+        <div className="h-px w-2/3 bg-gradient-to-r from-transparent via-rose-200 to-transparent"></div>
       </SidebarHeader>
-      
-      <SidebarContent>
+
+      <SidebarContent className="px-3">
         <SidebarGroup>
-          
+          <SidebarGroupLabel className="text-xs font-medium text-slate-500 ml-2">Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink 
-                    to="/" 
-                    className={({ isActive }) => 
-                      isActive ? "text-dental-600 bg-dental-50" : "text-gray-700"
-                    }
-                  >
-                    <Home className="h-5 w-5 mr-2" />
-                    <span>Pagina Inicial</span>
-                  </NavLink>
-                </SidebarMenuButton>
+                <NavLink to="/" className="w-full">
+                  {({ isActive }) => (
+                    <SidebarMenuButton
+                      isActive={isActive}
+                      className={`rounded-xl transition-all duration-300 ${isActive
+                          ? "bg-gradient-to-r from-rose-300 to-purple-300 text-white shadow-md"
+                          : "hover:bg-rose-100 text-slate-700"
+                        }`}
+                    >
+                      <Home className={`h-5 w-5 mr-3 ${isActive ? "text-white" : "text-rose-400"}`} />
+                      <span>Página Inicial</span>
+                    </SidebarMenuButton>
+                  )}
+                </NavLink>
               </SidebarMenuItem>
-              
+
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink 
-                    to="/patients" 
-                    className={({ isActive }) => 
-                      isActive ? "text-dental-600 bg-dental-50" : "text-gray-700"
-                    }
-                  >
-                    <Users className="h-5 w-5 mr-2" />
-                    <span>Pacientes</span>
-                  </NavLink>
-                </SidebarMenuButton>
+                <NavLink to="/patients" className="w-full">
+                  {({ isActive }) => (
+                    <SidebarMenuButton
+                      isActive={isActive}
+                      className={`rounded-xl transition-all duration-300 ${isActive
+                          ? "bg-gradient-to-r from-rose-300 to-purple-300 text-white shadow-md"
+                          : "hover:bg-rose-100 text-slate-700"
+                        }`}
+                    >
+                      <Users className={`h-5 w-5 mr-3 ${isActive ? "text-white" : "text-rose-400"}`} />
+                      <span>Pacientes</span>
+                    </SidebarMenuButton>
+                  )}
+                </NavLink>
               </SidebarMenuItem>
-              
+
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink 
-                    to="/appointments" 
-                    className={({ isActive }) => 
-                      isActive ? "text-dental-600 bg-dental-50" : "text-gray-700"
-                    }
-                  >
-                    <Calendar className="h-5 w-5 mr-2" />
-                    <span>Agendamentos</span>
-                  </NavLink>
-                </SidebarMenuButton>
+                <NavLink to="/appointments" className="w-full">
+                  {({ isActive }) => (
+                    <SidebarMenuButton
+                      isActive={isActive}
+                      className={`rounded-xl transition-all duration-300 ${isActive
+                          ? "bg-gradient-to-r from-rose-300 to-purple-300 text-white shadow-md"
+                          : "hover:bg-rose-100 text-slate-700"
+                        }`}
+                    >
+                      <Calendar className={`h-5 w-5 mr-3 ${isActive ? "text-white" : "text-rose-400"}`} />
+                      <span>Agendamentos</span>
+                    </SidebarMenuButton>
+                  )}
+                </NavLink>
               </SidebarMenuItem>
-              
+
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink 
-                    to="/finance" 
-                    className={({ isActive }) => 
-                      isActive ? "text-dental-600 bg-dental-50" : "text-gray-700"
-                    }
-                  >
-                    <DollarSign className="h-5 w-5 mr-2" />
-                    <span>Financeiro</span>
-                  </NavLink>
-                </SidebarMenuButton>
+                <NavLink to="/finance" className="w-full">
+                  {({ isActive }) => (
+                    <SidebarMenuButton
+                      isActive={isActive}
+                      className={`rounded-xl transition-all duration-300 ${isActive
+                          ? "bg-gradient-to-r from-rose-300 to-purple-300 text-white shadow-md"
+                          : "hover:bg-rose-100 text-slate-700"
+                        }`}
+                    >
+                      <DollarSign className={`h-5 w-5 mr-3 ${isActive ? "text-white" : "text-rose-400"}`} />
+                      <span>Financeiro</span>
+                    </SidebarMenuButton>
+                  )}
+                </NavLink>
               </SidebarMenuItem>
-              
+
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink 
-                    to="/prescriptions" 
-                    className={({ isActive }) => 
-                      isActive ? "text-dental-600 bg-dental-50" : "text-gray-700"
-                    }
-                  >
-                    <FileText className="h-5 w-5 mr-2" />
-                    <span>Prescrições</span>
-                  </NavLink>
-                </SidebarMenuButton>
+                <NavLink to="/prescriptions" className="w-full">
+                  {({ isActive }) => (
+                    <SidebarMenuButton
+                      isActive={isActive}
+                      className={`rounded-xl transition-all duration-300 ${isActive
+                          ? "bg-gradient-to-r from-rose-300 to-purple-300 text-white shadow-md"
+                          : "hover:bg-rose-100 text-slate-700"
+                        }`}
+                    >
+                      <FileText className={`h-5 w-5 mr-3 ${isActive ? "text-white" : "text-rose-400"}`} />
+                      <span>Prescrições</span>
+                    </SidebarMenuButton>
+                  )}
+                </NavLink>
               </SidebarMenuItem>
-              
+
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink 
-                    to="/reports" 
-                    className={({ isActive }) => 
-                      isActive ? "text-dental-600 bg-dental-50" : "text-gray-700"
-                    }
-                  >
-                    <PieChart className="h-5 w-5 mr-2" />
-                    <span>Relatórios</span>
-                  </NavLink>
-                </SidebarMenuButton>
+                <NavLink to="/reports" className="w-full">
+                  {({ isActive }) => (
+                    <SidebarMenuButton
+                      isActive={isActive}
+                      className={`rounded-xl transition-all duration-300 ${isActive
+                          ? "bg-gradient-to-r from-rose-300 to-purple-300 text-white shadow-md"
+                          : "hover:bg-rose-100 text-slate-700"
+                        }`}
+                    >
+                      <PieChart className={`h-5 w-5 mr-3 ${isActive ? "text-white" : "text-rose-400"}`} />
+                      <span>Relatórios</span>
+                    </SidebarMenuButton>
+                  )}
+                </NavLink>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <div className="mt-auto py-6 flex justify-center">
+          <div className="p-4 rounded-xl bg-gradient-to-r from-rose-100 to-purple-100 text-xs text-center text-slate-600">
+            <p>Clínica Digital</p>
+            <p className="font-medium text-rose-500">v1.2.0</p>
+          </div>
+        </div>
       </SidebarContent>
     </Sidebar>
   );

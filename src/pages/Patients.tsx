@@ -19,13 +19,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Search, MoreVertical, UserPlus } from "lucide-react";
-import useAppStore from "@/store/useAppStore";
+import { Search, MoreVertical, UserPlus, Users, Phone, Mail, Calendar } from "lucide-react";
 import { calculateAge } from "@/utils/ageCalculator";
 import { format } from "date-fns";
+import usePatientsStore from "@/store/usePatientStore";
+import useAppointmentsStore from "@/store/useAppointmentsStore";
+import AddPatientForm from "@/components/patients/AddPatientDialog";
 
 const Patients = () => {
-  const { patients } = useAppStore();
+  const patients = usePatientsStore((state) => state.patients);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
@@ -34,12 +36,19 @@ const Patients = () => {
   );
 
   return (
-    <div className="dental-container">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="page-title mb-0">Pacientes</h1>
+    <div className="p-4">
+      {/* Header Section */}
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex items-center gap-2">
+          <Users className="w-5 h-5 text-pink-600 md:w-6 md:h-6" />
+          <h1 className="text-lg font-semibold text-gray-800 md:text-xl lg:text-2xl">
+            Pacientes
+          </h1>
+        </div>
         
-        <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
-          <div className="relative w-full sm:w-64">
+        {/* Search and Add Patient */}
+        <div className="flex flex-col w-full gap-3 md:flex-row md:items-center">
+          <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
@@ -49,25 +58,96 @@ const Patients = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          
-          <Button asChild className="bg-dental-600 hover:bg-dental-700">
-            <p onClick={()=> navigate(`/patients/add`)} className="flex items-center gap-1">
-              <UserPlus className="h-4 w-4" />
-              Adicionar Paciente
-            </p>
-          </Button>
+          <div className="w-full md:w-auto">
+            <AddPatientForm />
+          </div>
         </div>
       </div>
 
-      <div className="rounded-md border">
+      {/* Mobile Patient Cards View (visible on small screens) */}
+      <div className="flex flex-col gap-4 md:hidden">
+        {filteredPatients.length === 0 ? (
+          <div className="text-center py-6 text-muted-foreground rounded-md border">
+            Nenhum paciente encontrado.
+          </div>
+        ) : (
+          filteredPatients.map((patient) => (
+            <div 
+              key={patient.id} 
+              className="border rounded-lg p-4 shadow-sm"
+              onClick={() => navigate(`/patients/${patient.id}`)}
+            >
+              <div className="flex justify-between items-start">
+                <h3 className="font-medium text-dental-600">{patient.name}</h3>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">Open menu</span>
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[160px]">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <p onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/patients/${patient.id}`);
+                      }} className="cursor-pointer">
+                        View Details
+                      </p>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                      Edit Patient
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                      Schedule Appointment
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      className="text-destructive"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Delete Patient
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              
+              <div className="mt-2 text-sm">{calculateAge(patient.dateOfBirth)} anos</div>
+              
+              <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                <Phone className="w-3 h-3" />
+                <span>{patient.phone}</span>
+              </div>
+              
+              <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                <Mail className="w-3 h-3" />
+                <span className="break-all">{patient.email}</span>
+              </div>
+              
+              <div className="mt-3 pt-3 border-t">
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-xs font-medium">Próxima Consulta:</span>
+                </div>
+                <MobileAppointmentStatus patientId={patient.id} />
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table View (hidden on small screens) */}
+      <div className="hidden md:block rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome do Paciente</TableHead>
-              <TableHead>Contato</TableHead>
-              <TableHead>Idade</TableHead>
-              <TableHead>Próxima Consulta</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+              <TableHead className="min-w-[200px]">Nome do Paciente</TableHead>
+              <TableHead className="min-w-[180px]">Contato</TableHead>
+              <TableHead className="min-w-[100px]">Idade</TableHead>
+              <TableHead className="min-w-[180px]">Próxima Consulta</TableHead>
+              <TableHead className="min-w-[100px] text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -83,14 +163,14 @@ const Patients = () => {
                   <TableCell className="font-medium">
                     <p
                       onClick={() => navigate(`/patients/${patient.id}`)}
-                      className="hover:text-dental-600 hover:underline transition-colors"
+                      className="hover:text-dental-600 hover:underline transition-colors cursor-pointer"
                     >
                       {patient.name}
                     </p>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="text-sm">{patient.email}</span>
+                      <span className="text-sm break-all">{patient.email}</span>
                       <span className="text-xs text-muted-foreground">
                         {patient.phone}
                       </span>
@@ -110,11 +190,11 @@ const Patients = () => {
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" className="w-[160px]">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <p onClick={() => navigate(`/patients/${patient.id}`)}>
+                          <p onClick={() => navigate(`/patients/${patient.id}`)} className="cursor-pointer">
                             View Details
                           </p>
                         </DropdownMenuItem>
@@ -140,9 +220,9 @@ const Patients = () => {
   );
 };
 
-// Helper component to show upcoming appointment
-const AppointmentStatus = ({ patientId }: { patientId: string }) => {
-  const { appointments } = useAppStore();
+// Helper component for desktop view
+const AppointmentStatus = ({ patientId }) => {
+  const appointments = useAppointmentsStore((state) => state.appointments);
   
   const upcomingAppointment = appointments
     .filter(
@@ -163,6 +243,36 @@ const AppointmentStatus = ({ patientId }: { patientId: string }) => {
         {upcomingAppointment.type}
       </Badge>
       <span className="text-xs text-muted-foreground mt-1">
+        {format(new Date(upcomingAppointment.date), "MMM d, yyyy")} at{" "}
+        {upcomingAppointment.time}
+      </span>
+    </div>
+  );
+};
+
+// Mobile-specific appointment status component
+const MobileAppointmentStatus = ({ patientId }) => {
+  const appointments = useAppointmentsStore((state) => state.appointments);
+  
+  const upcomingAppointment = appointments
+    .filter(
+      (apt) =>
+        apt.patientId === patientId &&
+        apt.status === "scheduled" &&
+        new Date(apt.date) >= new Date()
+    )
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+
+  if (!upcomingAppointment) {
+    return <span className="text-xs text-muted-foreground block mt-1">None scheduled</span>;
+  }
+
+  return (
+    <div className="mt-1">
+      <Badge variant="outline" className="text-xs font-normal">
+        {upcomingAppointment.type}
+      </Badge>
+      <span className="text-xs text-muted-foreground block mt-1">
         {format(new Date(upcomingAppointment.date), "MMM d, yyyy")} at{" "}
         {upcomingAppointment.time}
       </span>

@@ -20,7 +20,7 @@ const App = () => (
   <ErrorBoundary FallbackComponent={ErrorFallback}>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="min-h-screen">
+        <div className="min-h-screen overflow-x-hidden">
           {/* The Layout component with Outlet will be rendered here by the router */}
           <Outlet />
         </div>
