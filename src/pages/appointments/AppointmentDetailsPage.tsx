@@ -6,7 +6,8 @@ import {
     Calendar as CalendarIcon,
     StickyNote,
     ArrowLeft,
-    CreditCard
+    CreditCard,
+    MoreVertical
 } from 'lucide-react';
 import { FaTooth } from "react-icons/fa";
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,14 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Payment } from '@/types/types';
@@ -66,11 +75,11 @@ export const AppointmentDetailsPage = () => {
 
     if (!appointment || !patient) {
         return (
-            <div className="container mx-auto px-4 py-6">
-                <h1>Agendamento não encontrado</h1>
-                <Button variant="ghost" onClick={() => navigate(-1)} className="mt-4">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Voltar
+            <div className="p-4">
+                <h1 className="text-lg font-semibold text-gray-800 mb-4">Agendamento não encontrado</h1>
+                <Button variant="outline" onClick={() => navigate('/appointments')} className="flex items-center gap-2">
+                    <ArrowLeft className="w-4 h-4" />
+                    Voltar para Agendamentos
                 </Button>
             </div>
         );
@@ -99,90 +108,212 @@ export const AppointmentDetailsPage = () => {
         setIsPaymentDialogOpen(false);
     };
 
-    const getStatusColor = (status: AppointmentStatus) => {
+    const getStatusBadgeVariant = (status: AppointmentStatus) => {
         switch (status) {
-            case 'scheduled': return 'bg-yellow-100 text-yellow-800';
-            case 'completed': return 'bg-green-100 text-green-800';
-            case 'cancelled': return 'bg-red-100 text-red-800';
-            case 'no-show': return 'bg-red-100 text-red-800';
-            default: return 'bg-gray-100 text-gray-800';
+            case 'completed':
+                return 'success';
+            case 'cancelled':
+            case 'no-show':
+                return 'destructive';
+            case 'scheduled':
+                return 'default';
+            default:
+                return 'outline';
+        }
+    };
+
+    const getStatusText = (status: AppointmentStatus) => {
+        switch (status) {
+            case 'scheduled': return 'Agendado';
+            case 'completed': return 'Finalizado';
+            case 'cancelled': return 'Cancelado';
+            case 'no-show': return 'Não Compareceu';
+            default: return 'Pendente';
         }
     };
 
     return (
-        <div className="container mx-auto px-4 py-6 max-w-4xl">
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                    <Button variant="ghost" onClick={() => navigate(-1)}>
-                        <ArrowLeft className="w-4 h-4 mr-2" />
+        <div className="p-4 md:p-6 max-w-6xl mx-auto">
+            {/* Mobile Header */}
+            <div className="flex items-center justify-between mb-4 md:hidden">
+                <Button 
+                    variant="ghost" 
+                    onClick={() => navigate(-1)} 
+                    className="p-2"
+                    aria-label="Voltar"
+                >
+                    <ArrowLeft className="w-5 h-5" />
+                </Button>
+                
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="p-2">
+                            <MoreVertical className="w-5 h-5" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-[200px]">
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => navigate(`/appointments/${id}/edit`)}>
+                            Editar Agendamento
+                        </DropdownMenuItem>
+                        {appointment.status === 'completed' && !appointment.payment?.status && (
+                            <DropdownMenuItem onClick={() => setIsPaymentDialogOpen(true)}>
+                                Registrar Pagamento
+                            </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                            className={appointment.status !== 'completed' ? "" : "text-muted-foreground"}
+                            onClick={() => appointment.status !== 'completed' && handleStatusChange('completed')}
+                            disabled={appointment.status === 'completed'}
+                        >
+                            Marcar como Concluído
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            className={appointment.status !== 'cancelled' ? "" : "text-muted-foreground"}
+                            onClick={() => appointment.status !== 'cancelled' && handleStatusChange('cancelled')}
+                            disabled={appointment.status === 'cancelled'}
+                        >
+                            Cancelar Agendamento
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            className={appointment.status !== 'no-show' ? "" : "text-muted-foreground"}
+                            onClick={() => appointment.status !== 'no-show' && handleStatusChange('no-show')}
+                            disabled={appointment.status === 'no-show'}
+                        >
+                            Marcar como Não Compareceu
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+
+            {/* Desktop Header */}
+            <div className="hidden md:flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                    <Button variant="ghost" onClick={() => navigate(-1)} className="p-2">
+                        <ArrowLeft className="w-5 h-5 mr-2" />
                         Voltar
                     </Button>
-                    <h1 className="text-3xl font-bold text-gray-800">Detalhes do Agendamento</h1>
+                    <div className="flex items-center gap-2">
+                        <CalendarIcon className="w-5 h-5 text-pink-600" />
+                        <h1 className="text-xl font-semibold text-gray-800 lg:text-2xl">
+                            Detalhes do Agendamento
+                        </h1>
+                    </div>
                 </div>
-                <Badge className={`text-sm px-3 py-1 ${getStatusColor(appointment.status)}`}>
-                    {appointment.status === 'scheduled' ? 'Agendado' : 
-                     appointment.status === 'completed' ? 'Finalizado' : 
-                     appointment.status === 'cancelled' ? 'Cancelado' : 
-                     appointment.status === 'no-show' ? 'Não Compareceu' : 
-                     'Pendente'}
+                <div className="flex items-center gap-2">
+                    {appointment.status === 'completed' && !appointment.payment?.status && (
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setIsPaymentDialogOpen(true)}
+                            className="hidden md:flex items-center gap-2"
+                        >
+                            <CreditCard className="w-4 h-4" />
+                            Registrar Pagamento
+                        </Button>
+                    )}
+                    <Button 
+                        onClick={() => navigate(`/appointments/${id}/edit`)}
+                        className="hidden md:flex items-center gap-2 bg-pink-600 hover:bg-pink-700"
+                    >
+                        Editar Agendamento
+                    </Button>
+                </div>
+            </div>
+
+            {/* Status Banner */}
+            <div className="bg-gray-50 p-4 rounded-lg mb-4 flex items-center justify-between">
+                <div>
+                    <h2 className="text-base font-medium md:text-lg">
+                        Consulta de {patient.name}
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                        {format(appointment.date, 'dd/MM/yyyy')} às {appointment.time}
+                    </p>
+                </div>
+                <Badge variant={getStatusBadgeVariant(appointment.status)} className="text-xs px-2 py-0.5">
+                    {getStatusText(appointment.status)}
                 </Badge>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 {/* Main Info Card */}
                 <Card className="lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle>Informações do Agendamento</CardTitle>
-                        <CardDescription>Detalhes da consulta</CardDescription>
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-base font-medium md:text-lg">
+                            Informações do Agendamento
+                        </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                                <User className="w-5 h-5 text-teal-600" />
-                                <div>
-                                    <span className="text-sm text-gray-500">Paciente</span>
-                                    <p onClick={() => navigate(`/patients/${patient.id}`)} className="font-medium text-gray-900 hover:underline cursor-pointer">{patient.name}</p>
-                                </div>
+                    
+                    <CardContent className="space-y-4">
+                        {/* Patient Info Section */}
+                        <div className="p-3 border rounded-md">
+                            <div className="flex items-center gap-3 mb-2">
+                                <User className="w-5 h-5 text-pink-600" />
+                                <span className="text-sm font-medium">Informações do Paciente</span>
                             </div>
-
-                            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                                <CalendarIcon className="w-5 h-5 text-teal-600" />
-                                <div>
-                                    <span className="text-sm text-gray-500">Data</span>
-                                    <p className="font-medium text-gray-900">
-                                        {format(appointment.date, 'dd/MM/yyyy')}
-                                    </p>
-                                </div>
+                            <div className="ml-8">
+                                <p 
+                                    className="font-medium text-pink-600 hover:underline cursor-pointer"
+                                    onClick={() => navigate(`/patients/${patient.id}`)}
+                                >
+                                    {patient.name}
+                                </p>
+                                {/* You can add more patient info here if needed */}
                             </div>
+                        </div>
 
-                            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                                <Clock className="w-5 h-5 text-teal-600" />
-                                <div>
-                                    <span className="text-sm text-gray-500">Horário</span>
-                                    <p className="font-medium text-gray-900">
-                                        {appointment.time} ({appointment.duration} min)
-                                    </p>
-                                </div>
+                        {/* Appointment Details Section */}
+                        <div className="p-3 border rounded-md">
+                            <div className="flex items-center gap-3 mb-2">
+                                <FaTooth className="w-5 h-5 text-pink-600" />
+                                <span className="text-sm font-medium">Detalhes do Procedimento</span>
                             </div>
-
-                            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                                <FaTooth className="w-5 h-5 text-teal-600" />
-                                <div>
-                                    <span className="text-sm text-gray-500">Procedimento</span>
-                                    <p className="font-medium text-gray-900">{appointment.type}</p>
+                            <div className="ml-8">
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <div>
+                                        <p className="text-xs text-gray-500">Procedimento</p>
+                                        <p className="font-medium">{appointment.type}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500">Duração</p>
+                                        <p className="font-medium">{appointment.duration} minutos</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-4 bg-gray-50 rounded-lg">
-                            <div className="flex items-start gap-3">
-                                <StickyNote className="w-5 h-5 text-teal-600 mt-1" />
-                                <div>
-                                    <span className="text-sm text-gray-500">Observações</span>
-                                    <p className="text-gray-900 whitespace-pre-wrap mt-1">
-                                        {appointment.notes || "Nenhuma observação registrada"}
-                                    </p>
+                        {/* Date & Time Section */}
+                        <div className="p-3 border rounded-md">
+                            <div className="flex items-center gap-3 mb-2">
+                                <Clock className="w-5 h-5 text-pink-600" />
+                                <span className="text-sm font-medium">Data e Horário</span>
+                            </div>
+                            <div className="ml-8">
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <div>
+                                        <p className="text-xs text-gray-500">Data</p>
+                                        <p className="font-medium">{format(appointment.date, 'dd/MM/yyyy')}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500">Horário</p>
+                                        <p className="font-medium">{appointment.time}</p>
+                                    </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Notes Section */}
+                        <div className="p-3 border rounded-md">
+                            <div className="flex items-start gap-3 mb-2">
+                                <StickyNote className="w-5 h-5 text-pink-600 mt-0.5" />
+                                <span className="text-sm font-medium">Observações</span>
+                            </div>
+                            <div className="ml-8 mt-1">
+                                <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                                    {appointment.notes || "Nenhuma observação registrada"}
+                                </p>
                             </div>
                         </div>
                     </CardContent>
@@ -190,18 +321,20 @@ export const AppointmentDetailsPage = () => {
 
                 {/* Status and Payment Card */}
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Status e Pagamento</CardTitle>
-                        <CardDescription>Gerencie o status e pagamento</CardDescription>
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-base font-medium md:text-lg">
+                            Status e Pagamento
+                        </CardTitle>
                     </CardHeader>
+                    
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label>Status da Consulta</Label>
+                            <Label className="text-sm">Status da Consulta</Label>
                             <Select 
                                 value={appointment.status} 
                                 onValueChange={handleStatusChange}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Selecione o status" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -213,73 +346,55 @@ export const AppointmentDetailsPage = () => {
                             </Select>
                         </div>
 
-                        <div className="pt-4 border-t">
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm font-medium">Valor Total</span>
-                                <span className="text-lg font-bold text-teal-600">
-                                    R$ {appointment.payment?.amount.toFixed(2) || '0,00'}
+                        <div className="p-3 border rounded-md space-y-3">
+                            <div className="flex items-center gap-3 mb-2">
+                                <CreditCard className="w-5 h-5 text-pink-600" />
+                                <span className="text-sm font-medium">Informações de Pagamento</span>
+                            </div>
+                            
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-500">Valor Total</span>
+                                <span className="text-lg font-bold text-pink-600">
+                                    R$ {appointment.payment?.amount?.toFixed(2) || '0,00'}
                                 </span>
                             </div>
-                            <div className="flex justify-between items-center mb-4">
-                                <span className="text-sm font-medium">Status do Pagamento</span>
-                                <Badge variant={appointment.payment?.status === 'paid' ? "secondary" : "outline"}>
+                            
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-500">Status do Pagamento</span>
+                                <Badge variant={appointment.payment?.status === 'paid' ? "success" : "outline"}>
                                     {appointment.payment?.status === 'paid' ? 'Pago' : 'Pendente'}
                                 </Badge>
                             </div>
-                        </div>
-                    </CardContent>
-                    <CardFooter className="flex flex-col gap-2">
-                        {appointment.status === 'completed' && !appointment.payment?.status && (
-                            <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button className="w-full" variant="outline">
+
+                            {appointment.payment?.status === 'paid' && (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-500">Forma de Pagamento</span>
+                                    <span className="text-sm capitalize">
+                                        {appointment.payment.method === 'card' ? 'Cartão' :
+                                         appointment.payment.method === 'cash' ? 'Dinheiro' :
+                                         appointment.payment.method === 'insurance' ? 'Convênio' : 'Outro'}
+                                    </span>
+                                </div>
+                            )}
+                            
+                            {appointment.status === 'completed' && !appointment.payment?.status && (
+                                <div className="pt-2">
+                                    <Button 
+                                        className="w-full text-sm" 
+                                        variant="outline"
+                                        onClick={() => setIsPaymentDialogOpen(true)}
+                                    >
                                         <CreditCard className="w-4 h-4 mr-2" />
                                         Registrar Pagamento
                                     </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Registrar Pagamento</DialogTitle>
-                                        <DialogDescription>
-                                            Preencha os detalhes do pagamento abaixo
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <form onSubmit={handlePaymentSubmit}>
-                                        <div className="space-y-4 py-4">
-                                            <div className="space-y-2">
-                                                <Label>Método de Pagamento</Label>
-                                                <Select name="method" defaultValue="card">
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Selecione o método" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="card">Cartão</SelectItem>
-                                                        <SelectItem value="cash">Dinheiro</SelectItem>
-                                                        <SelectItem value="insurance">Convênio</SelectItem>
-                                                        <SelectItem value="other">Outro</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label>Valor</Label>
-                                                <Input 
-                                                    name="amount"
-                                                    type="number" 
-                                                    step="0.01"
-                                                    placeholder="0,00"
-                                                    defaultValue={appointment.payment?.amount || 0}
-                                                />
-                                            </div>
-                                        </div>
-                                        <DialogFooter>
-                                            <Button type="submit">Confirmar Pagamento</Button>
-                                        </DialogFooter>
-                                    </form>
-                                </DialogContent>
-                            </Dialog>
-                        )}
+                                </div>
+                            )}
+                        </div>
+                    </CardContent>
+                    
+                    <CardFooter className="block pt-2 pb-4 px-4">
                         <Button 
-                            className="w-full"
+                            className="w-full bg-pink-600 hover:bg-pink-700 text-white md:hidden"
                             onClick={() => navigate(`/appointments/${id}/edit`)}
                         >
                             Editar Agendamento
@@ -287,6 +402,67 @@ export const AppointmentDetailsPage = () => {
                     </CardFooter>
                 </Card>
             </div>
+
+            {/* Payment Registration Dialog */}
+            <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg font-medium text-gray-800">
+                            Registrar Pagamento
+                        </DialogTitle>
+                        <DialogDescription>
+                            Preencha os detalhes do pagamento abaixo
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handlePaymentSubmit}>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label>Método de Pagamento</Label>
+                                <Select name="method" defaultValue="card">
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Selecione o método" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="card">Cartão</SelectItem>
+                                        <SelectItem value="cash">Dinheiro</SelectItem>
+                                        <SelectItem value="insurance">Convênio</SelectItem>
+                                        <SelectItem value="other">Outro</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Valor</Label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-2.5 text-gray-500">R$</span>
+                                    <Input 
+                                        name="amount"
+                                        type="number" 
+                                        step="0.01"
+                                        placeholder="0,00"
+                                        className="pl-8"
+                                        defaultValue={appointment.payment?.amount || 0}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <DialogFooter className="gap-3">
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                onClick={() => setIsPaymentDialogOpen(false)}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button 
+                                type="submit"
+                                className="bg-pink-600 hover:bg-pink-700"
+                            >
+                                Confirmar Pagamento
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

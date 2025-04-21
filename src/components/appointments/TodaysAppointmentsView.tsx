@@ -28,7 +28,7 @@ export const TodaysAppointmentsView: React.FC<TodaysAppointmentsViewProps> = ({
               onClick={() => onAppointmentClick(apt)}
             >
               <div className="flex items-center space-x-6">
-                <div className="text-lg font-medium text-teal-600">
+                <div className="text-lg font-medium text-pink-600">
                   {format(apt.start, 'HH:mm')}
                 </div>
                 <div>
@@ -40,7 +40,7 @@ export const TodaysAppointmentsView: React.FC<TodaysAppointmentsViewProps> = ({
                 <div className="text-sm text-gray-600">
                   Duração: {apt.duration} min
                 </div>
-                <div className="px-3 py-1 rounded-full text-sm bg-teal-50 text-teal-700">
+                <div className="px-3 py-1 rounded-full text-sm bg-pink-50 text-pink-700">
                   {apt.status}
                 </div>
               </div>
