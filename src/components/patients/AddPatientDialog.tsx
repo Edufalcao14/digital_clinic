@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -46,6 +46,7 @@ type PatientFormData = Omit<Patient, 'id' | 'createdAt'>;
 
 const AddPatientForm = () => {
   const addPatient = usePatientsStore((state) => state.addPatient);
+  const dialogCloseRef = useRef<HTMLButtonElement>(null);
 
   const {
     register,
@@ -79,10 +80,15 @@ const AddPatientForm = () => {
     const formattedData = {
       ...data,
       dateOfBirth: new Date(data.dateOfBirth),
+      dentalHistory: {
+        ...data.dentalHistory,
+        complaints: data.dentalHistory?.complaints || [],
+      },
     };
 
     addPatient(formattedData);
     reset(); // Reset form after submission
+    dialogCloseRef.current?.click(); // Close the dialog
   };
 
   return (
@@ -117,11 +123,11 @@ const AddPatientForm = () => {
               id="name"
               type="text"
               {...register('name')}
-              className="w-full rounded-md h-8 text-sm mt-1"
+              className={`w-full rounded-md h-8 text-sm mt-1 ${errors.name ? 'border-red-500' : ''}`}
               placeholder="Nome do paciente"
             />
             {errors.name && (
-              <p className="text-xs text-pink-500">{errors.name.message}</p>
+              <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
             )}
           </div>
 
@@ -136,11 +142,11 @@ const AddPatientForm = () => {
                 id="email"
                 type="email"
                 {...register('email')}
-                className="w-full rounded-md h-8 text-sm mt-1"
+                className={`w-full rounded-md h-8 text-sm mt-1 ${errors.email ? 'border-red-500' : ''}`}
                 placeholder="email@exemplo.com"
               />
               {errors.email && (
-                <p className="text-xs text-pink-500">{errors.email.message}</p>
+                <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
               )}
             </div>
 
@@ -153,11 +159,11 @@ const AddPatientForm = () => {
                 id="phone"
                 type="tel"
                 {...register('phone')}
-                className="w-full rounded-md h-8 text-sm mt-1"
+                className={`w-full rounded-md h-8 text-sm mt-1 ${errors.phone ? 'border-red-500' : ''}`}
                 placeholder="(00) 00000-0000"
               />
               {errors.phone && (
-                <p className="text-xs text-pink-500">{errors.phone.message}</p>
+                <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>
               )}
             </div>
           </div>
@@ -171,10 +177,10 @@ const AddPatientForm = () => {
               id="dateOfBirth"
               type="date"
               {...register('dateOfBirth')}
-              className="w-full rounded-md h-8 text-sm mt-1"
+              className={`w-full rounded-md h-8 text-sm mt-1 ${errors.dateOfBirth ? 'border-red-500' : ''}`}
             />
             {errors.dateOfBirth && (
-              <p className="text-xs text-pink-500">{errors.dateOfBirth.message}</p>
+              <p className="text-xs text-red-500 mt-1">{errors.dateOfBirth.message}</p>
             )}
           </div>
 
@@ -186,9 +192,12 @@ const AddPatientForm = () => {
             <Textarea
               id="address"
               {...register('address')}
-              className="w-full rounded-md min-h-[40px] text-sm mt-1"
+              className={`w-full rounded-md min-h-[40px] text-sm mt-1 ${errors.address ? 'border-red-500' : ''}`}
               placeholder="Endereço completo"
             />
+            {errors.address && (
+              <p className="text-xs text-red-500 mt-1">{errors.address.message}</p>
+            )}
           </div>
 
           {/* Emergency Contact - reduced height */}
@@ -199,9 +208,12 @@ const AddPatientForm = () => {
             <Input
               id="emergencyContact"
               {...register('emergencyContact')}
-              className="w-full rounded-md h-8 text-sm mt-1"
+              className={`w-full rounded-md h-8 text-sm mt-1 ${errors.emergencyContact ? 'border-red-500' : ''}`}
               placeholder="Nome e telefone do contato"
             />
+            {errors.emergencyContact && (
+              <p className="text-xs text-red-500 mt-1">{errors.emergencyContact.message}</p>
+            )}
           </div>
 
           {/* Medical Notes - simplified */}
@@ -212,22 +224,28 @@ const AddPatientForm = () => {
             <Textarea
               id="medicalHistory.notes"
               {...register('medicalHistory.notes')}
-              className="w-full rounded-md min-h-[40px] text-sm mt-1"
+              className={`w-full rounded-md min-h-[40px] text-sm mt-1 ${errors.medicalHistory?.notes ? 'border-red-500' : ''}`}
               placeholder="Alergias, medicações, condições médicas..."
             />
+            {errors.medicalHistory?.notes && (
+              <p className="text-xs text-red-500 mt-1">{errors.medicalHistory.notes.message}</p>
+            )}
           </div>
 
           {/* Dental Notes - simplified */}
           <div>
-            <Label htmlFor="dentalHistory.notes" className="text-xs font-medium text-pink-500">
+            <Label htmlFor="dentalHistory.complaints" className="text-xs font-medium text-pink-500">
               Histórico Odontológico
             </Label>
             <Textarea
-              id="dentalHistory.notes"
-              {...register('dentalHistory.complaints')}
-              className="w-full rounded-md min-h-[40px] text-sm mt-1"
+              id="dentalHistory.complaints"
+              {...register('dentalHistory.complaints.0')}
+              className={`w-full rounded-md min-h-[40px] text-sm mt-1 ${errors.dentalHistory?.complaints ? 'border-red-500' : ''}`}
               placeholder="Queixas, tratamentos anteriores..."
             />
+            {errors.dentalHistory?.complaints && (
+              <p className="text-xs text-red-500 mt-1">{errors.dentalHistory.complaints.message}</p>
+            )}
           </div>
 
           {/* Submit Button */}
@@ -251,6 +269,7 @@ const AddPatientForm = () => {
             </Button>
           </div>
         </form>
+        <DialogClose ref={dialogCloseRef} className="hidden" />
       </DialogContent>
     </Dialog>
   );
